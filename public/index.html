@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Seed Horse Edit</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/styles.css" />
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js" defer></script>
+    <script src="/app.js?v=3" defer></script>
+  </head>
+  <body>
+    <main class="shell">
+      <section class="workbench">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">Seed Horse Edit</p>
+            <h1>视频编辑控制台</h1>
+          </div>
+          <div class="status-pill" id="serverStatus">连接中</div>
+        </header>
+
+        <div class="layout">
+          <section class="panel input-panel">
+            <div class="section-head">
+              <h2>素材</h2>
+              <button class="icon-button" id="clearAssets" title="清空素材" type="button">
+                <i data-lucide="trash-2"></i>
+              </button>
+            </div>
+
+            <label class="dropzone" id="dropzone">
+              <input id="fileInput" type="file" multiple accept="video/*,audio/*,image/*" />
+              <span class="drop-icon"><i data-lucide="upload-cloud"></i></span>
+              <span class="drop-title">拖入视频、音频、图片</span>
+              <span class="drop-sub">或点击选择文件</span>
+            </label>
+
+            <div class="url-row">
+              <input id="remoteUrl" type="url" placeholder="https://example.com/input.mp4" />
+              <select id="remoteKind" aria-label="素材类型">
+                <option value="video">视频</option>
+                <option value="image">图片</option>
+                <option value="audio">音频</option>
+              </select>
+              <button id="addUrl" type="button" title="添加远程素材">
+                <i data-lucide="plus"></i>
+              </button>
+            </div>
+
+            <div class="asset-list" id="assetList"></div>
+          </section>
+
+          <section class="panel prompt-panel">
+            <div class="section-head">
+              <h2>调用</h2>
+              <div class="switcher" role="tablist">
+                <button class="active" data-provider="happyhorse" type="button">HappyHorse</button>
+                <button data-provider="seedance" type="button">Seedance</button>
+              </div>
+            </div>
+
+            <textarea id="prompt" rows="9" placeholder="描述你想要的视频编辑效果"></textarea>
+
+            <div class="form-grid">
+              <label data-provider="happyhorse">
+                <span>阿里 API Key</span>
+                <input id="aliKey" type="password" autocomplete="off" placeholder="sk-..." />
+              </label>
+              <label data-provider="seedance">
+                <span>字节 API Key</span>
+                <input id="byteKey" type="password" autocomplete="off" placeholder="volc-..." />
+              </label>
+              <label>
+                <span>清晰度</span>
+                <select id="resolution">
+                  <option value="720P">720P</option>
+                  <option value="1080P">1080P</option>
+                </select>
+              </label>
+              <label>
+                <span>比例</span>
+                <select id="ratio">
+                  <option value="">自动</option>
+                  <option value="16:9">16:9</option>
+                  <option value="9:16">9:16</option>
+                  <option value="1:1">1:1</option>
+                  <option value="4:3">4:3</option>
+                  <option value="3:4">3:4</option>
+                </select>
+              </label>
+              <label>
+                <span>时长</span>
+                <input id="duration" type="number" min="1" max="60" placeholder="自动（主视频时长）" />
+              </label>
+              <label>
+                <span>Seed</span>
+                <input id="seed" type="number" min="0" max="2147483647" placeholder="随机" />
+              </label>
+            </div>
+
+            <label class="checkline">
+              <input id="watermark" type="checkbox" />
+              <span>HappyHorse 水印</span>
+            </label>
+
+            <div class="actions">
+              <button class="primary" id="generate" type="button">
+                <i data-lucide="wand-sparkles"></i>
+                <span>提交任务</span>
+              </button>
+              <button id="poll" type="button" disabled>
+                <i data-lucide="refresh-cw"></i>
+                <span>查询结果</span>
+              </button>
+            </div>
+
+            <div class="process-log">
+              <div class="section-head">
+                <h2>处理进度</h2>
+                <button class="icon-button" id="clearLog" title="重置" type="button">
+                  <i data-lucide="rotate-ccw"></i>
+                </button>
+              </div>
+              <div class="progress-wrapper">
+                <div class="progress-bar">
+                  <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="progress-text" id="progressText">等待任务提交</div>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel result-panel">
+            <div class="section-head">
+              <h2>预览</h2>
+              <button class="icon-button" id="copyJson" title="复制 JSON" type="button">
+                <i data-lucide="copy"></i>
+              </button>
+            </div>
+
+            <div class="preview-grid">
+              <section class="preview-box">
+                <div class="preview-label">输入</div>
+                <div class="preview-stage" id="inputStage">
+                  <i data-lucide="clapperboard"></i>
+                  <span>等待素材</span>
+                </div>
+              </section>
+
+              <section class="preview-box">
+                <div class="preview-label">输出</div>
+                <div class="preview-stage result-stage" id="resultStage">
+                  <i data-lucide="film"></i>
+                  <span>等待任务</span>
+                </div>
+              </section>
+            </div>
+
+            <div class="task-meta">
+              <div>
+                <span>Provider</span>
+                <strong id="metaProvider">-</strong>
+              </div>
+              <div>
+                <span>Task ID</span>
+                <strong id="metaTask">-</strong>
+              </div>
+              <div>
+                <span>Status</span>
+                <strong id="metaStatus">-</strong>
+              </div>
+            </div>
+
+            <pre id="jsonOut">{}</pre>
+          </section>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

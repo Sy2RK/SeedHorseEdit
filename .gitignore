@@ -1,0 +1,7 @@
+node_modules/
+dist/
+.env
+uploads/
+.playwright-mcp/
+seed-horse-edit-*.png
+.DS_Store
